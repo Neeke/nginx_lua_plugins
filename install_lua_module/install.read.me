@@ -4,31 +4,32 @@
 --set-misc-nginx-module
 --@author ciogao@gmail.com 2013-12-14
 
-----------------install git-----------
-rpm -Uvh http://repo.webtatic.com/yum/centos/5/latest.rpm
-yum install --enablerepo=webtatic git
-
 
 ---------------download nginx && modules---------
 cd /usr/local
 
 1 or 2
 1.------------------
-wget http://nginx.org/download/nginx-1.4.4.tar.gz
-wget http://luajit.org/download/LuaJIT-2.0.0-beta9.tar.gz
-git clone https://github.com/simpl/ngx_devel_kit.git
-git clone https://github.com/chaoslawful/lua-nginx-module.git
-git clone https://github.com/agentzh/echo-nginx-module.git
-git clone https://github.com/agentzh/set-misc-nginx-module.git
+
+    ----------------install git-----------
+    rpm -Uvh http://repo.webtatic.com/yum/centos/5/latest.rpm
+    yum install --enablerepo=webtatic git
+
+    wget http://nginx.org/download/nginx-1.4.4.tar.gz
+    wget http://luajit.org/download/LuaJIT-2.0.0-beta9.tar.gz
+    git clone https://github.com/simpl/ngx_devel_kit.git
+    git clone https://github.com/chaoslawful/lua-nginx-module.git
+    git clone https://github.com/agentzh/echo-nginx-module.git
+    git clone https://github.com/agentzh/set-misc-nginx-module.git
 
 
 2.------------------
-wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/nginx-1.4.4.tar.gz
-wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/LuaJIT-2.0.0-beta9.tar.gz
-wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/ngx_devel_kit.tar.gz
-wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/lua-nginx-module.tar.gz
-wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/echo-nginx-module.tar.gz
-wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/set-misc-nginx-module.tar.gz
+    wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/nginx-1.4.4.tar.gz
+    wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/LuaJIT-2.0.0-beta9.tar.gz
+    wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/ngx_devel_kit.tar.gz
+    wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/lua-nginx-module.tar.gz
+    wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/echo-nginx-module.tar.gz
+    wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/set-misc-nginx-module.tar.gz
 
 
 -------------install LuaJIT--------------
