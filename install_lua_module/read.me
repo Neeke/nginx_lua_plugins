@@ -1,0 +1,126 @@
+--#nginx插件安装
+--lua-nginx-module
+--echo-nginx-module
+--set-misc-nginx-module
+--@author gaochitao 2013-12-14
+
+
+rpm -Uvh http://repo.webtatic.com/yum/centos/5/latest.rpm
+yum install --enablerepo=webtatic git
+
+cd /usr/local
+git clone https://github.com/simpl/ngx_devel_kit.git
+git clone https://github.com/chaoslawful/lua-nginx-module.git
+git clone https://github.com/agentzh/echo-nginx-module.git
+git clone https://github.com/agentzh/set-misc-nginx-module.git
+
+wget http://luajit.org/download/LuaJIT-2.0.0-beta9.tar.gz
+tar -zxvf LuaJIT-2.0.0-beta9.tar.gz
+cd LuaJIT-2.0.0-beta9
+
+vim Makefile +70
+-------------------------------
+-LDCONFIG= ldconfig -n
++LDCONFIG= /sbin/ldconfig -n
+------------------------------
+
+make
+make install PREFIX=/usr/local/luajit
+
+ln -sf luajit-2.0.0-beta9 /usr/local/luajit/bin/luajit
+
+export LUAJIT_LIB=/usr/local/luajit/lib
+export LUAJIT_INC=/usr/local/luajit/include/luajit-2.0
+
+
+mount 192.168.100.144:/var/nfs/uploadimage/mp /var/www/api_v1/CPCMP/trunk/static/img/uploadimg/mp/
+
+wget http://nginx.org/download/nginx-1.4.4.tar.gz
+tar -zxvf nginx-1.4.4.tar.g
+cd nginx-1.4.4
+
+
+./configure --prefix=/usr/local/nginx \
+--user=www \
+--group=www \
+--with-ld-opt="-Wl,-rpath,$LUAJIT_LIB" \
+--with-http_stub_status_module \
+--with-http_ssl_module \
+--with-http_secure_link_module \
+--add-module=/usr/local/ngx_devel_kit \
+--add-module=/usr/local/set-misc-nginx-module \
+--add-module=/usr/local/echo-nginx-module \
+--add-module=/usr/local/lua-nginx-module
+
+make -j2
+make install
+
+
+---------------------
+nginx配置：
+
+# This is a web server config for CPCMP-api
+server {
+    listen 9999;
+    server_name localhost;
+    access_log /var/log/nginx/CPCMP-api-access.log;
+    error_log /var/log/nginx/CPCMP-api-error.log;
+    root /var/www/devbox/CPCMP/app;
+    if (!-f $request_filename){
+        rewrite ^.*$ /index.php last;
+    }
+    location ~ \.php {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param LIBS_EXTERNAL_FOLDER /var/www/devbox/Libs/Externals;
+        fastcgi_param LIBS_SDK_FOLDER /var/www/devbox/Libs/SDK;
+        fastcgi_param ENVIRONMENT development;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fcgi.conf;
+    }
+}
+# End for CPCMP-api
+
+
+# This is a web server config for CPCMP-static
+server {
+    listen 9998;
+    server_name localhost;
+    access_log /var/log/nginx/CPCMP-static-access.log;
+    error_log /var/log/nginx/CPCMP-static-error.log;
+    root /var/www/devbox/CPCMP/static;
+
+        location ~ ^/v1/\d+/\d+\.html$ {
+                set $secret_key 'j1u!#akfip3#@^#K!*hDdSD';
+                set_secure_random_alphanum $vid 15;
+                set $from 100;
+                set $to 999;
+                set_random $rand $from $to;
+                set $t $msec;
+                set_secure_random_alphanum $hash_code 5;
+                set $vid $t$vid$rand;
+                set_md5 $signature  $vid$secret_key;
+
+                rewrite ^/v1/(\d+)/(\d+)\.html  /v1_1/$hash_code/$1/$2.html?vid=$vid&sign=$signature&t=$t redirect;
+        }
+
+
+        location ~ ^/v1_1/([0-9a-zA-Z]+)/\d+/\d+\.html$ {
+                rewrite_by_lua_file /path to CPCMP_app_config_nginx/v1_1.lua;
+        }
+
+        error_page 403 404 500 502 503 504  /404.html;
+
+        location ~ \.php {
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_index index.php;
+
+            fastcgi_param LIBS_EXTERNAL_FOLDER /var/www/devbox/Libs/Externals;
+            fastcgi_param LIBS_SDK_FOLDER /var/www/devbox/Libs/SDK;
+            fastcgi_param ENVIRONMENT development;
+
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fcgi.conf;
+        }
+}
+# End for CPCMP-static
