@@ -1,0 +1,71 @@
+--#nginx插件安装
+--lua-nginx-module
+--echo-nginx-module
+--set-misc-nginx-module
+--@author ciogao@gmail.com 2013-12-14
+
+----------------install git-----------
+rpm -Uvh http://repo.webtatic.com/yum/centos/5/latest.rpm
+yum install --enablerepo=webtatic git
+
+
+---------------download nginx && modules---------
+cd /usr/local
+
+1 or 2
+1.------------------
+wget http://nginx.org/download/nginx-1.4.4.tar.gz
+wget http://luajit.org/download/LuaJIT-2.0.0-beta9.tar.gz
+git clone https://github.com/simpl/ngx_devel_kit.git
+git clone https://github.com/chaoslawful/lua-nginx-module.git
+git clone https://github.com/agentzh/echo-nginx-module.git
+git clone https://github.com/agentzh/set-misc-nginx-module.git
+
+
+2.------------------
+wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/nginx-1.4.4.tar.gz
+wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/LuaJIT-2.0.0-beta9.tar.gz
+wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/ngx_devel_kit.tar.gz
+wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/lua-nginx-module.tar.gz
+wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/echo-nginx-module.tar.gz
+wget https://github.com/Neeke/nginx_lua_plugins/blob/master/install_lua_module/set-misc-nginx-module.tar.gz
+
+
+-------------install LuaJIT--------------
+tar -zxvf LuaJIT-2.0.0-beta9.tar.gz
+cd LuaJIT-2.0.0-beta9
+
+vim Makefile +70
+    -------------------------------
+    -LDCONFIG= ldconfig -n
+    +LDCONFIG= /sbin/ldconfig -n
+    ------------------------------
+
+make
+make install PREFIX=/usr/local/luajit
+
+ln -sf luajit-2.0.0-beta9 /usr/local/luajit/bin/luajit
+
+export LUAJIT_LIB=/usr/local/luajit/lib
+export LUAJIT_INC=/usr/local/luajit/include/luajit-2.0
+
+
+-----------------install nginx with modules--------------
+tar -zxvf nginx-1.4.4.tar.g
+cd nginx-1.4.4
+
+
+./configure --prefix=/usr/local/nginx \
+--user=www \
+--group=www \
+--with-ld-opt="-Wl,-rpath,$LUAJIT_LIB" \
+--with-http_stub_status_module \
+--with-http_ssl_module \
+--with-http_secure_link_module \
+--add-module=/usr/local/ngx_devel_kit \
+--add-module=/usr/local/set-misc-nginx-module \
+--add-module=/usr/local/echo-nginx-module \
+--add-module=/usr/local/lua-nginx-module
+
+make -j2
+make install
